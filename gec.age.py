@@ -5,13 +5,13 @@ nlp = spacy.load('en')
 
 UD_POS = ['NOUN', 'ADJ', 'ADV', 'ADP', 'AUX',' CCONJ', 'DET', 'INTJ', 'NUM',
 'PART','PRON','PROPN','PUNCT','SCONJ', 'SYM', 'VERB', 'X']
-# agePat = dict([ 
-#     ('ability', ['N -to+of add_ing(%s)', ]), \
-#     ('discuss', ['V +about']), \
-#     ('commented', ['V -on']), \
-#     ('abroad', ['to+ ADV']), \
+agePat = dict([ 
+    ('ability', ['NOUN -to+of add_ing(%s)', ]), \
+    ('discuss', ['VERB +about']), \
+    ('commented', ['VERB -on']), \
+    ('abroad', ['to+ ADV']), \
 #     ('abroad', ['+to']), \
-# ])
+])
 
 def add_ing(verb):
     if verb in adding: return adding[verb]
@@ -50,9 +50,9 @@ def genAGE(sent, loc, pats):
             elif p[0] == '+': # insert BEFORE
                 if p[1:] in [word, prevword]: return sent
                 res += [ p[1:], word ]
-            # elif p[-1] == '+': # insert AFTER
-            #     if p[:-1] in [word, nextword]: return sent # avoid creating double
-            #     res += [ word, p[:-1] ]
+            elif p[-1] == '+': # insert AFTER
+                if p[:-1] in [word, nextword]: return sent # avoid creating double
+                res += [ word, p[:-1] ]
             elif p[0] == '-': # delete
                 if p[1:] == sent[loc+i]: pass
                 else:                    return sent
@@ -63,7 +63,7 @@ def genAGE(sent, loc, pats):
         return sent[:loc]+res+sent[loc+len(pat):]
 
 if __name__ == '__main__':
-    agePat = json.load(open('gec.age.txt', 'r'))
+    # agePat = json.load(open('gec.age.txt', 'r'))
     lines = '''What \'s more , his ability to speak was perfect .
 We must not doubt women of ability in work places .
 He commented on the topic .
