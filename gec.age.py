@@ -45,12 +45,13 @@ def genAGE(sent, loc, pats):
 def matching(sent, pat, start_loc, pos_loc):
     res = []
     for i, p in enumerate(pat):
+        # TODO: not clear enough
         word = sent[start_loc+i] if start_loc+i < len(sent) else '' # None
         prevword = sent[start_loc+i-1] if start_loc+i-1 >= 0 else '' # None
         nextword = sent[start_loc+i+1] if start_loc+i+1 < len(sent) else '' # None
 
         if p in UD_POS:
-            res += [ sent[start_loc+i] ] # 本身那個字 sent[4+0] if loc==0 是 pos
+            res += [ sent[start_loc+i] ]
         elif p[0] == '-' and '+' in p: # replace
             minus, plus = p[1:p.index('+')], p[p.index('+')+1:]
             if word == minus:   res += [ plus ]
@@ -84,8 +85,8 @@ able to able to'''.split('\n')
 
 if __name__ == '__main__':
     print("Generating rules...")
-    # agePat = json.load(open('gec.age.txt', 'r')) # Read rules from a file
-    agePat = get_patterns('gec.pat.txt') # Generate rules from the pattern file
+    agePat = json.load(open('gec.age.txt', 'r')) # Read rules from a file
+    # agePat = get_patterns('gec.pat.txt') # Generate rules from the pattern file
 
     print("Modifying sentences...")
     for sent in test_lines:
