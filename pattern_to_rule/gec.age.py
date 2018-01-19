@@ -1,5 +1,5 @@
 from gecVerbForm import droping, adding
-from gen_pat import get_patterns
+from gen_pat import get_rules
 import json
 import spacy
 nlp = spacy.load('en')
@@ -39,7 +39,9 @@ def genAGE(sent, loc, pats):
         start_loc = loc - pos_loc if pos_locs else loc # 從 sent 中 rule 起始位置開始
         
         res = matching(sent, pat, start_loc, pos_loc)
-        if res: err_sents.append(' '.join(sent[:start_loc]+res+sent[start_loc+len(pat):]))
+        if res: 
+            res = ' '.join(sent[:start_loc]+res+sent[start_loc+len(pat):]).replace('_', ' ')
+            err_sents.append(res)
     return err_sents
 
 def matching(sent, pat, start_loc, pos_loc):
@@ -85,19 +87,20 @@ able to able to'''.split('\n')
 
 if __name__ == '__main__':
     print("Generating rules...")
-    agePat = json.load(open('gec.age.txt', 'r')) # Read rules from a file
-    # agePat = get_patterns('gec.pat.txt') # Generate rules from the pattern file
+    agePat = json.load(open('./data/gec.age.txt', 'r')) # Read rules from a file
+    # agePat = get_patterns('data/gec.pat.txt') # Generate rules from the pattern file
 
     print("Modifying sentences...")
+    fs = open('./data/result.txt', 'w', encoding='utf8')
     for sent in test_lines:
-        print('\noriginal =', sent)
+        print('\noriginal =', sent, file=fs)
         sent = sent.split(' ')
         rules = getRules(sent) # TODO: 會不會只檢查到一個符合
         for i in range(len(rules)):
             errs = genAGE(sent, *rules[i])
             for e in errs:
-                print('fake err =', e)
-            
+                print('fake err =', e, file=fs)
+    fs.close()
 
             
         

@@ -1,12 +1,20 @@
 from collections import defaultdict
 import re
 import json
+
+#####
+import nltk
+nltk.download('wordnet')
+from nltk.stem import WordNetLemmatizer
+lemmatizer = WordNetLemmatizer()
+
 import spacy
 nlp = spacy.load('en')
+#####
 
 NOT_CARE = '_'
 
-def format_rule(edit):
+def boilerplate(edit):
     group = re.match(r'(-(?P<deletion>[^\+]+))?(\+(?P<insertion>.+))?', edit).groupdict()
 
     template = ''
@@ -27,27 +35,21 @@ def gen_rule(pattern):
         pattern (str): Each line in file
     
     Returns:
-        Tuple: (word, rule)
+        word, rule
     '''
     target, edit, loc, count = pattern.split('\t')
 
-    doc = nlp(target, disable=['parser', 'ner']) # for POS tag
-    pos = doc[0].pos_
+    pos = nlp(target, disable=['parser', 'ner'])[0].pos_ # only one word, directly 
+    if pos == 'VERB': target = lemmatizer.lemmatize(target,'v')
+    elif pos == 'NOUN': target = lemmatizer.lemmatize(target)
 
     loc = int(loc)
     rule = [NOT_CARE for i in range(abs(loc)+1)]
-    if loc > 0:
-        rule[0] = pos
-        rule[loc] = format_rule(edit)
-    elif loc < 0:
-        rule[-1] = pos
-        rule[loc-1] = format_rule(edit)
-    else: 
-        print('Should not be here!')
-
+    rule[(loc > 0)-1] = pos # tricky, haha. loc > 0 then first location is pos, vice versa.
+    rule[loc if loc > 0 else loc-1] = boilerplate(edit)
     return target, ' '.join(rule)
 
-def get_patterns(file):
+def get_rules(pat_file):
     '''Read all patterns from text file and parse each rule
     Args:
         file (str): The patterns file
@@ -55,15 +57,16 @@ def get_patterns(file):
     Returns:
         Dict: (key: word, value: rules (list))
     '''
-    agePat = defaultdict(lambda: [])
-    with open(file, 'r', encoding='utf8') as fs:
-        patterns = fs.readlines()
-        for pat in patterns:
-            target, rule = gen_rule(pat)
-            agePat[target].append(rule)
-    return agePat        
+    rules = defaultdict(lambda: [])
+    for pat in open(pat_file, 'r', encoding='utf8').readlines():
+        target, rule = gen_rule(pat)
+        rules[target].append(rule)
+    return rules  
+
+def write_rules(target_file, rules):
+    with open(target_file, 'w', encoding='utf8') as fs:
+        fs.write(json.dumps(rules))      
 
 if __name__ == '__main__':
-    agePat = get_patterns('gec.pat.txt')
-    with open('gec.age.txt', 'w', encoding='utf8') as fs:
-        fs.write(json.dumps(agePat))
+    rules = get_rules('./data/gec.pat.txt')
+    write_rules('./data/gec.age.txt', rules)
