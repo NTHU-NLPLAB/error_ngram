@@ -1,5 +1,5 @@
 from gecVerbForm import droping, adding
-from gen_pat import get_rules
+from gen_rules import get_rules
 import json
 import spacy
 nlp = spacy.load('en')
