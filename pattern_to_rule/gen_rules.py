@@ -3,6 +3,16 @@ import sys, getopt
 import re
 import json
 
+# nltk wordnet
+import nltk
+nltk.download('wordnet')
+from nltk.stem import WordNetLemmatizer
+lemmatizer = WordNetLemmatizer()
+
+# Spacy and pre-trained Eng model
+import spacy
+nlp = spacy.load('en')
+
 NOT_CARE = '_'
 
 def boilerplate(edit):
@@ -76,16 +86,6 @@ if __name__ == '__main__':
     except getopt.GetoptError:
         print(sys.argv[0], '-i <inputfile> -o <outputfile>')
         sys.exit(2)
-
-    # nltk wordnet
-    import nltk
-    nltk.download('wordnet')
-    from nltk.stem import WordNetLemmatizer
-    lemmatizer = WordNetLemmatizer()
-
-    # Spacy and pre-trained Eng model
-    import spacy
-    nlp = spacy.load('en')
 
     # main
     print("Converting rules...")
