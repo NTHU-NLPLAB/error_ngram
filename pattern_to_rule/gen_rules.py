@@ -1,16 +1,17 @@
 from collections import defaultdict
+import sys
 import re
 import json
 
-#####
+# nltk wordnet
 import nltk
 nltk.download('wordnet')
 from nltk.stem import WordNetLemmatizer
 lemmatizer = WordNetLemmatizer()
 
+# Spacy and pre-trained Eng model
 import spacy
 nlp = spacy.load('en')
-#####
 
 NOT_CARE = '_'
 
@@ -68,5 +69,9 @@ def write_rules(target_file, rules):
         fs.write(json.dumps(rules))      
 
 if __name__ == '__main__':
-    rules = get_rules('./data/gec.pat.txt')
-    write_rules('./data/gec.age.txt', rules)
+    try:
+        rules = get_rules(sys.argv[1])
+        write_rules(sys.argv[2], rules)
+    except:
+        print('''Please add arguments: input file and output file
+        > python gen_rules.py gec.pat.txt gec.age.txt''')
