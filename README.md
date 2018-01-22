@@ -24,22 +24,23 @@ A step by step series of examples that tell you have to get a development env ru
 git clone https://github.com/NTHU-NLPLAB/error_ngram.git
 ```
 
-Put your patterns file, named gec.pat.txt, in data/ and then run the following command.
-gen_rules.py generates rules based on the patterns.
+### Run
+Prepare your patterns file, and then run the following command.
+
+1. gen_rules.py generates rules from the patterns.
 
 ```
 python ./pattern_to_rule/gen_rules.py -i <input_file> -o <output_file>
 ```
-or to get instruction
-```
-python ./pattern_to_rule/gen_ruless.py -h
-```
 
-After gaining gec.age.txt (the rules), run:
+2. After gaining your rule file, run this to modify all sentences.
 ```
 python ./pattern_to_rule/gec.age.py [-c] -r <rule_file> -i <input_file> -o <output_file>
 ```
-If you want to combine two actions together, use `-c`, which will convert patterns to rules and then modify every sentence. On the other hand, just command `-i <file>` and `-o <file>`.
+
+PS: If you want to combine two actions together, use `-c` option, which will first convert patterns to rules and then modify every sentence. On the other hand, just command `-i <file>` and `-o <file>`.
+
+Use `-h` get instruction.
 
 ### TODO:
 * So far, we use test sentences, which are hard-coded.
