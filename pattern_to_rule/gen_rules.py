@@ -1,17 +1,7 @@
 from collections import defaultdict
-import sys
+import sys, getopt
 import re
 import json
-
-# nltk wordnet
-import nltk
-nltk.download('wordnet')
-from nltk.stem import WordNetLemmatizer
-lemmatizer = WordNetLemmatizer()
-
-# Spacy and pre-trained Eng model
-import spacy
-nlp = spacy.load('en')
 
 NOT_CARE = '_'
 
@@ -69,9 +59,36 @@ def write_rules(target_file, rules):
         fs.write(json.dumps(rules))      
 
 if __name__ == '__main__':
+    # read argv from command line
     try:
-        rules = get_rules(sys.argv[1])
-        write_rules(sys.argv[2], rules)
-    except:
-        print('''Please add arguments: input file and output file
-        > python gen_rules.py gec.pat.txt gec.age.txt''')
+        inputfile, outputfile = '', ''
+        opts, args = getopt.getopt(sys.argv[1:], "hi:o:", ["help", "input=","output="])
+        for opt, arg in opts:
+            if opt in ('-h', "--help"):
+                print (sys.argv[0], '-i <inputfile> -o <outputfile>')
+                sys.exit()
+            elif opt in ("-i", "--input") and arg:
+                inputfile = arg
+            elif opt in ("-o", "--output") and arg:
+                outputfile = arg
+        if not inputfile or not outputfile: # one of i/o is empty
+            raise getopt.GetoptError('')
+    except getopt.GetoptError:
+        print(sys.argv[0], '-i <inputfile> -o <outputfile>')
+        sys.exit(2)
+
+    # nltk wordnet
+    import nltk
+    nltk.download('wordnet')
+    from nltk.stem import WordNetLemmatizer
+    lemmatizer = WordNetLemmatizer()
+
+    # Spacy and pre-trained Eng model
+    import spacy
+    nlp = spacy.load('en')
+
+    # main
+    print("Converting rules...")
+    rules = get_rules(inputfile)
+    print("Writing rules into file...")
+    write_rules(outputfile, rules)
