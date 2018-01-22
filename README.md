@@ -28,14 +28,18 @@ Put your patterns file, named gec.pat.txt, in data/ and then run the following c
 gen_rules.py generates rules based on the patterns.
 
 ```
-python ./pattern_to_rule/gen_rules.py
+python ./pattern_to_rule/gen_rules.py -i <input_file> -o <output_file>
+```
+or to get instruction
+```
+python ./pattern_to_rule/gen_ruless.py -h
 ```
 
 After gaining gec.age.txt (the rules), run:
 ```
-python ./pattern_to_rule/gec.age.py
+python ./pattern_to_rule/gec.age.py [-c] -r <rule_file> -i <input_file> -o <output_file>
 ```
-This will modify the sentences.
+If you want to combine two actions together, use `-c`, which will convert patterns to rules and then modify every sentence. On the other hand, just command `-i <file>` and `-o <file>`.
 
 ### TODO:
 * So far, we use test sentences, which are hard-coded.
