@@ -43,5 +43,4 @@ PS: If you want to combine two actions together, use `-c` option, which will fir
 Use `-h` get instruction.
 
 ### TODO:
-* So far, we use test sentences, which are hard-coded.
-* Add some commands for automation. (run one .py rather than two .py)
+* Not implementing transfomation function such as add_Ving() or add_s.
