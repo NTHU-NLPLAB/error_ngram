@@ -1,7 +1,7 @@
 
 # coding: utf-8
 
-# In[29]:
+# In[1]:
 
 
 # test_data = '''
@@ -18,7 +18,7 @@
 # '''
 
 
-# In[30]:
+# In[2]:
 
 
 # 1. 把標點符號edit token，變成after
@@ -27,7 +27,7 @@
 # 4. 把一句多錯誤，變成多句個含一個錯誤
 
 
-# In[37]:
+# In[3]:
 
 
 # -*- coding: utf-8 -*-
@@ -94,7 +94,6 @@ def tokenize_doc(text):
 
     for line in text_masked.splitlines():
         for sent in sent_tokenize(line.strip()):
-            # restore masked edit tokens and return
             yield sent.format(*edits) 
 
 def to_after(tokens):
@@ -108,22 +107,8 @@ def to_after(tokens):
             return token
     return ' '.join(token for token in map(to_after_token, tokens) if token)
 
-new_data = []
-if __name__ == '__main__':
-    for line in fileinput.input(): # test_data.split('\n'): # 
-        simple_line = correct_punc(line.strip()) # remove PU
-        for sent in tokenize_doc(simple_line):
-            # after_sent = to_after(sent.split(' ')) # correct sentence
-            tokens = sent.split(' ')
-            for i, token in enumerate(tokens):
-                if token.startswith('[-') or token.startswith('{+'):
-                    new_sent = to_after(tokens[:i]) + ' ' + token + ' ' + to_after(tokens[i+1:])
-                    new_data.append(new_sent.strip())
 
-# pprint(new_data)
-
-
-# In[32]:
+# In[4]:
 
 
 import fileinput
@@ -131,7 +116,7 @@ import spacy
 from spacy.tokens import Doc
 
 
-# In[33]:
+# In[5]:
 
 
 class WhitespaceTokenizer(object):
@@ -145,15 +130,15 @@ class WhitespaceTokenizer(object):
         return Doc(self.vocab, words=words, spaces=spaces)
 
 
-# In[34]:
+# In[6]:
 
 
-nlp = spacy.load('en')
-# nlp = spacy.load('en_core_web_lg')
+# nlp = spacy.load('en')
+nlp = spacy.load('en_core_web_lg')
 nlp.tokenizer = WhitespaceTokenizer(nlp.vocab)
 
 
-# In[35]:
+# In[7]:
 
 
 # 用來抓 edit word
@@ -179,8 +164,7 @@ def correct(origin_tokens):
     return correct_tokens, pairs
 
     
-def format_edit(edit):
-    line, line_edits = edit
+def format_edit(line, line_edits):
     edit_type, origin_token, new_token, correct_token = line_edits[0]
     
     delete = ""
@@ -204,12 +188,19 @@ def format_edit(edit):
                 delete += "Delete:\t"+ ot.text +"\t"+ ot.lemma_ +"\t"+ ot.tag_ +"\n"
                 
     return template + delete
-        
-        
-if __name__ == "__main__":
-    all_edits = []
-    for line in new_data: # fileinput.input():
-        origin_tokens = line.strip().split(' ')
+
+
+def to_single_edit_sents(sents):
+    for sent in sents:
+        tokens = sent.split(' ')
+        for i, token in enumerate(tokens):
+            if token.startswith('[-') or token.startswith('{+'):
+                new_sent = to_after(tokens[:i]) + ' ' + token + ' ' + to_after(tokens[i+1:])
+                yield new_sent.strip()
+
+if __name__ == '__main__':
+    for sent in to_single_edit_sents(fileinput.input()):
+        origin_tokens = sent.strip().split(' ')
         correct_tokens, edit_pairs = correct(origin_tokens) # get edit pairs
         if not correct_tokens or not edit_pairs: continue # skip no edit or empty string
         
@@ -227,12 +218,7 @@ if __name__ == "__main__":
                     line_edits.append((edit_type, origin_token, new_token, correct_tokens[index:index+1]))
             else:
                 line_edits.append((edit_type, origin_token, new_token, correct_tokens[index:index+len(new_token.split())]))
-                
-        all_edits.append((line, line_edits))
-
-    fs = open('result.txt', 'w', encoding='utf8')
-    for edit in all_edits:
-        print("\n====================================", file=fs)
-        print(format_edit(edit), file=fs)
-    fs.close()
+        
+        print("\n====================================")
+        print(format_edit(sent, line_edits))
 
