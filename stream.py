@@ -1,10 +1,11 @@
 
 # coding: utf-8
 
-# In[1]:
+# In[24]:
 
 
 # test_data = '''
+# {+I　am//MW+} [-Fine//C-]{+fine//C+} , thank you !
 # Garlic and Echinacea tea : drink it when {+you//PS+} have infection , 　 it is simple but {+an//AR+} excellent antibiotic .
 # Hot mixture of vinegar , olive oil and eucalyptus : place it on aches and pains , itis {+a//AR+} fast and effective way to relieve aches and pains .
 # [-everyone//C-]{+Everyone//C+} may use it in {+his　or　her//PS+} daily life .
@@ -27,7 +28,7 @@
 # 4. 把一句多錯誤，變成多句個含一個錯誤
 
 
-# In[3]:
+# In[22]:
 
 
 # -*- coding: utf-8 -*-
@@ -107,6 +108,15 @@ def to_after(tokens):
             return token
     return ' '.join(token for token in map(to_after_token, tokens) if token)
 
+def to_single_edit_sents(sents):
+    for sent in sents:
+        for s in tokenize_doc(sent):
+            tokens =correct_punc(s).split(' ')
+            for i, token in enumerate(tokens):
+                if token.startswith('[-') or token.startswith('{+'):
+                    new_sent = to_after(tokens[:i]) + ' ' + token + ' ' + to_after(tokens[i+1:])
+                    yield new_sent.strip()
+
 
 # In[4]:
 
@@ -138,7 +148,7 @@ nlp = spacy.load('en_core_web_lg')
 nlp.tokenizer = WhitespaceTokenizer(nlp.vocab)
 
 
-# In[7]:
+# In[25]:
 
 
 # 用來抓 edit word
@@ -189,16 +199,8 @@ def format_edit(line, line_edits):
                 
     return template + delete
 
-
-def to_single_edit_sents(sents):
-    for sent in sents:
-        tokens = sent.split(' ')
-        for i, token in enumerate(tokens):
-            if token.startswith('[-') or token.startswith('{+'):
-                new_sent = to_after(tokens[:i]) + ' ' + token + ' ' + to_after(tokens[i+1:])
-                yield new_sent.strip()
-
 if __name__ == '__main__':
+#     for sent in to_single_edit_sents(test_data):
     for sent in to_single_edit_sents(fileinput.input()):
         origin_tokens = sent.strip().split(' ')
         correct_tokens, edit_pairs = correct(origin_tokens) # get edit pairs
