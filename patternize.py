@@ -1,8 +1,7 @@
 
 # coding: utf-8
 
-# In[24]:
-
+# In[1]:
 
 # test_data = '''
 # {+I　am//MW+} [-Fine//C-]{+fine//C+} , thank you !
@@ -21,17 +20,15 @@
 
 # In[2]:
 
-
 # 1. 把標點符號edit token，變成after
 # 2. 簡化修改標記:  {+word+}, [-word-], [-word>>word+}
 # 3. 再斷句一次
 # 4. 把一句多錯誤，變成多句個含一個錯誤
 
 
-# In[22]:
+# In[3]:
 
 
-# -*- coding: utf-8 -*-
 import fileinput, re
 from pprint import pprint
 from nltk.tokenize import sent_tokenize
@@ -118,8 +115,12 @@ def to_single_edit_sents(sents):
                     yield new_sent.strip()
 
 
-# In[4]:
+# In[ ]:
 
+
+
+
+# In[4]:
 
 import fileinput
 import spacy
@@ -127,7 +128,6 @@ from spacy.tokens import Doc
 
 
 # In[5]:
-
 
 class WhitespaceTokenizer(object):
     def __init__(self, vocab):
@@ -142,14 +142,12 @@ class WhitespaceTokenizer(object):
 
 # In[6]:
 
-
 # nlp = spacy.load('en')
 nlp = spacy.load('en_core_web_lg')
 nlp.tokenizer = WhitespaceTokenizer(nlp.vocab)
 
 
-# In[25]:
-
+# In[18]:
 
 # 用來抓 edit word
 re_words = r'(\[-(?P<d>.+)-\]|{\+(?P<i>.+)\+}|\[-(?P<rd>.+)>>(?P<ri>.+)\+})?'
@@ -177,30 +175,40 @@ def correct(origin_tokens):
 def format_edit(line, line_edits):
     edit_type, origin_token, new_token, correct_token = line_edits[0]
     
-    delete = ""
-    template = "("+ edit_type +") "+ origin_token +"\t->\t"+ new_token +"\nSent:\t"+ line +"\n\n"
+    template = {
+        "edit_type": edit_type,
+        "sent": line,
+        "edits": []
+    }
     
     for e in line_edits:
         edit_type, origin_token, new_token, correct_token = e
         
-        template += "\tToken\tLemma\tTag\tDep(to head)\n"
         for t in correct_token: # Insert or Replace
-            template += "Head:\t"+ t.head.text +"\t"+ t.head.lemma_ +"\t" + t.head.tag_ +"\n"
-            template += "Target:\t"+ t.text +"\t"+ t.lemma_ +"\t"+ t.tag_ +"\t" + t.dep_ +"\n"
+            temp = {
+                "Head": {
+                    "token": t.head.text,
+                    "lemma": t.head.lemma_,
+                    "tag": t.head.tag_,
+                    "dep": None
+                },
+                "Target": {
+                    "token": t.text,
+                    "lemma": t.lemma_,
+                    "tag": t.tag_,
+                    "dep": t.dep_
+                },
+                "Child": [{"token": child.text, "lemma": child.lemma_, "tag": child.tag_, "dep": child.dep_} for child in t.children],
+                "Delete": [{"token": ot.text, "lemma": ot.lemma_, "tag": ot.tag_} for ot in nlp(origin_token)] if origin_token else []
+            }
+            template['edits'].append(temp)  
 
-            for child in t.children:
-                template += "Child:\t"+ child.text +"\t"+ child.lemma_ +"\t"+ child.tag_ +"\t" + child.dep_ +"\n"
-            template += "\n"
-            
-        if origin_token:
-            origin_token = nlp(origin_token)
-            for ot in origin_token:
-                delete += "Delete:\t"+ ot.text +"\t"+ ot.lemma_ +"\t"+ ot.tag_ +"\n"
-                
-    return template + delete
+    return template
 
+import json
 if __name__ == '__main__':
-#     for sent in to_single_edit_sents(test_data):
+    data = []
+#     for sent in to_single_edit_sents(test_data.split('\n')):
     for sent in to_single_edit_sents(fileinput.input()):
         origin_tokens = sent.strip().split(' ')
         correct_tokens, edit_pairs = correct(origin_tokens) # get edit pairs
@@ -220,7 +228,12 @@ if __name__ == '__main__':
                     line_edits.append((edit_type, origin_token, new_token, correct_tokens[index:index+1]))
             else:
                 line_edits.append((edit_type, origin_token, new_token, correct_tokens[index:index+len(new_token.split())]))
-        
-        print("\n====================================")
-        print(format_edit(sent, line_edits))
+
+        data.append(format_edit(sent, line_edits))
+    print(json.dumps(data))
+
+
+# In[ ]:
+
+
 
