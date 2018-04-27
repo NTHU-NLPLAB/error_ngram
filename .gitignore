@@ -1,6 +1,9 @@
 .vscode/
 __pycache__/
 
-
+map_reduce/out/*
+result.json
 *.txt
 */__pycache__/
+**/*/.ipynb_checkpoints/
+.ipynb_checkpoints/

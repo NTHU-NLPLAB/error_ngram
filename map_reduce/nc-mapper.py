@@ -84,26 +84,19 @@ def tri_vs_edit(trigram, uniq_edit_list, reserved='about'):
                 group.add(edit)
     return group
 
-cache = {}
-for bi in bigrams:
-    if bi in cache:
-        print(cache[bi])
-        continue
+# not sure if bigrams repeated or not.
+count_edit = Counter(edit_list)
 
+count_bi = Counter(bigrams)
+for bi in count_bi:
     group = list(bi_vs_edit(bi, uniq_edit))
     if group: 
-        line = "%s\t%s" % (' '.join(bi), '\t'.join([' '.join(edit) for edit in group]))
-        cache[bi] = line
-        print(line)
-    
-for tri in trigrams:
-    if tri in cache:
-        print(cache[tri])
-        continue
-        
-    group = list(tri_vs_edit(tri, uniq_edit))
-    if group: 
-        line = "%s\t%s" % (' '.join(tri), '\t'.join([' '.join(edit) for edit in group]))
-        cache[tri] = line
+        line = "%s\t%d\t%s" % (' '.join(bi), count_bi[bi], '\t'.join(["%s|%d" % (' '.join(edit), count_edit[edit]) for edit in group]))
         print(line)
 
+count_tri = Counter(trigrams)
+for tri in count_tri:
+    group = list(tri_vs_edit(tri, uniq_edit))
+    if group: 
+        line = "%s\t%d\t%s" % (' '.join(tri), count_tri[tri], '\t'.join(["%s|%d" % (' '.join(edit), count_edit[edit]) for edit in group]))
+        print(line)

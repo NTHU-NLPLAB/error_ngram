@@ -1,27 +1,26 @@
 import sys
-from collections import Counter
+from collections import Counter, defaultdict
 
-groups = {} # bi/tri: similar pattern
-counts = Counter()
+groups = defaultdict(Counter)
+# groups = {} # bi/tri: similar pattern
+# counts = Counter()
 
 for line in sys.stdin:
-    ngrams = line.strip().split('\t')
+    head, count, ngrams = line.strip().split('\t', maxsplit=2)
+    ngrams = ngrams.split('\t')
     
     for ngram in ngrams:
-        counts[ngram] += 1
-   
-    if ngrams[0] not in groups:
-        groups[ngrams[0]] = ngrams[1:]
+        edit, cnt = ngram.split('|')
+        groups[(head, int(count))][edit] = int(cnt)
 
-# sort groups?
-        
+
 all_ngrams = []
-for key, sims in groups.items(): # bi/tri, sims
-    scores = { key: counts[key] }
-    for sim in sims:
-        scores[sim] = [counts[sim], counts[sim]/counts[key]]
+for head, sims in groups.items(): # bi/tri, sims
+    head, head_count = head
+    scores = { head: head_count }
+    for sim, count in sims.items():
+        scores[sim] = [count, count / head_count]
     all_ngrams.append(sorted(scores.items(), key=lambda item: len(item[0])))
-
 
 
 def sort(temp):
