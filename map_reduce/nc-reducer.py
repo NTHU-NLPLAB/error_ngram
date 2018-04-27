@@ -1,32 +1,26 @@
-import sys
+import fileinput
 from collections import Counter, defaultdict
+from itertools import groupby
+from operator import itemgetter
 
 groups = defaultdict(Counter)
-# groups = {} # bi/tri: similar pattern
-# counts = Counter()
 
-for line in sys.stdin:
+def parse_line(line):
     head, count, ngrams = line.strip().split('\t', maxsplit=2)
     ngrams = ngrams.split('\t')
+    return head, int(count), ngrams
+
+# fileinput v.s. stdin
+records = map(parse_line, fileinput.input())
+for head, records in groupby(records, key=itemgetter(0)):
+    edit_dict, total_count = Counter(), 0
+    for _, count, ngrams in records:
+        total_count += count
+        for ngram in ngrams:
+            edit, cnt = ngram.split('|')
+            edit_dict[edit] += int(cnt)
     
-    for ngram in ngrams:
-        edit, cnt = ngram.split('|')
-        groups[(head, int(count))][edit] = int(cnt)
-
-
-all_ngrams = []
-for head, sims in groups.items(): # bi/tri, sims
-    head, head_count = head
-    scores = { head: head_count }
-    for sim, count in sims.items():
-        scores[sim] = [count, count / head_count]
-    all_ngrams.append(sorted(scores.items(), key=lambda item: len(item[0])))
-
-
-def sort(temp):
-    return sorted(temp, key=lambda item: (item[1][1][1]))
-
-for ngram in sort(all_ngrams):
-    for freq in ngram:
-        print(freq[0], ': ', freq[1], sep = '')
+    print("{}: {}".format(head, total_count))
+    for edit, count in edit_dict.items():
+        print("{}: [{}, {}]".format(edit, count, count/total_count))
     print('='*50)

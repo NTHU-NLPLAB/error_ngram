@@ -2,7 +2,7 @@ import nltk, re, sys
 import fileinput
 from collections import Counter
 
-def to_after(tokens, reserved='about'):
+def to_after(tokens):
     def to_after_token(token):
         token = token.replace('\u3000', ' ')
         if token == ' ': return ''
@@ -42,24 +42,21 @@ def get_bigram(tokens):
 def get_trigram(tokens):
     return list(nltk.trigrams(tokens))
 
+### Here
+reserved = 'about'
+
 edit_list = [] # trigram edit
 bigrams, trigrams = [], []
     
-# for line in open('ef.diff.simplize.despace.txt', 'r', encoding='utf8').readlines():# fileinput.input():
 # for line in open('test.txt', 'r', encoding='utf8').readlines():# fileinput.input():
 for line in sys.stdin:
     tokens = line.strip().split(' ')
 
-    aft_tokens, indices = to_after(tokens, reserved='about')
+    aft_tokens, indices = to_after(tokens)
 
     noedit_list, edit_tokens = divide_triedit_noedit(aft_tokens, indices)
 
-    # if edit_tokens:
-    #     print(edit_tokens)
-    # print(noedit_list)
-    # print(triedit_tokens)
     edit_list.extend(edit_tokens)
-    # print(edit_list)
 
     # 會有 [] 出現，若是長度不夠
     for no_edit in noedit_list:
@@ -75,7 +72,7 @@ def bi_vs_edit(bigram, uniq_edit_list):
             group.add(edit)
     return group
 
-def tri_vs_edit(trigram, uniq_edit_list, reserved='about'):
+def tri_vs_edit(trigram, uniq_edit_list):
     group = set()
     for edit in uniq_edit_list:
         if edit[0] == trigram[0] and edit[2] == trigram[2]:
