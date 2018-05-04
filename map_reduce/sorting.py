@@ -4,8 +4,10 @@ from operator import itemgetter
 all_pat = []
 for line in fileinput.input():
     patterns = line.split('\t')
-    
     main, total_count = patterns[0].split('|')
+    
+    total_count = int(total_count)
+    if total_count < 5: continue # filter out those low freq patterns
     
     # 同組的 pattern 先排序
     items = sorted(map(lambda ptn: ptn.split('|'), patterns[1:]), key=itemgetter(1), reverse=True)
@@ -20,5 +22,5 @@ for pats in all_pat:
     
     print("{} {}".format(main, total_count))
     for p, count in pats[1:]:
-        print("{}: [{}, {}]".format(p, count, int(count)/int(total_count)))
+        print("{}: [{}, {}]".format(p, count, int(count)/total_count))
     print("="*50)
