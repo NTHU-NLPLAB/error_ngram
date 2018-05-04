@@ -20,7 +20,6 @@ for head, records in groupby(records, key=itemgetter(0)):
             edit, cnt = ngram.split('|')
             edit_dict[edit] += int(cnt)
     
-    print("{}: {}".format(head, total_count))
-    for edit, count in edit_dict.items():
-        print("{}: [{}, {}]".format(edit, count, count/total_count))
-    print('='*50)
+    temp = '\t'.join([ "{}|{}".format(edit, count) for edit, count in edit_dict.items() ])
+    print("{}|{}\t{}".format(head, total_count, temp))
+    
